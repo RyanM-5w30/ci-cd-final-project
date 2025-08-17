@@ -21,6 +21,7 @@ spec:
     - name: git-clone
       taskRef:
         name: git-clone
+        kind: ClusterTask
       params:
         - name: url
           value: "https://github.com/RyanM-5w30/ci-cd-final-project.git"
