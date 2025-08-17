@@ -1,0 +1,16 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: ci-cd-pipeline-run-
+spec:
+  pipelineRef:
+    name: ci-cd-pipeline
+  workspaces:
+    - name: output
+      persistentVolumeClaim:
+        claimName: oc-lab-pvc
+  params:
+    - name: app-name
+      value: myapp
+    - name: build-image
+      value: quay.io/RyanM-5w30/myapp:latest
