@@ -75,4 +75,51 @@ spec:
         echo "Running flake8 lint..."
         flake8 --count --select=E9,F63,F7,F82 --show-source --statistics
         flake8 --count --max-complexity=10 --max-line-length=127 --statistics
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: buildah
+spec:
+  description: >-
+    Buildah task builds source into a container image and pushes it to a container registry.
+  params:
+    - name: IMAGE
+      description: Reference of the image to be built.
+      type: string
+    - name: DOCKERFILE
+      description: Path to the Dockerfile to build.
+      type: string
+      default: ./Dockerfile
+    - name: CONTEXT
+      description: Path to the directory to use as build context.
+      type: string
+      default: .
+    - name: TLSVERIFY
+      description: Verify image registry TLS certificate when pushing.
+      type: string
+      default: "true"
+  workspaces:
+    - name: source
+  steps:
+    - name: build
+      image: quay.io/buildah/stable:v1.23.1
+      workingDir: $(workspaces.source.path)
+      securityContext:
+        privileged: true
+      script: |
+        #!/bin/sh
+        set -e
+        echo "Building image $(params.IMAGE)..."
+        buildah bud \
+          --tls-verify=$(params.TLSVERIFY) \
+          -f $(params.DOCKERFILE) \
+          -t $(params.IMAGE) \
+          $(params.CONTEXT)
+
+        echo "Pushing image $(params.IMAGE)..."
+        buildah push \
+          --tls-verify=$(params.TLSVERIFY) \
+          $(params.IMAGE) \
+          docker://$(params.IMAGE)
 
